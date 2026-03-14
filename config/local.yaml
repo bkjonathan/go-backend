@@ -1,0 +1,20 @@
+app_env: development
+server_host: 0.0.0.0
+server_port: 8082
+database_url: postgres://postgres:postgres@db:5432/appdb?sslmode=disable
+jwt_secret: change-me-super-secret
+jwt_access_token_ttl: 24h
+cors_allowed_origins:
+  - "*"
+cors_allowed_methods:
+  - GET
+  - POST
+  - PUT
+  - PATCH
+  - DELETE
+  - OPTIONS
+cors_allowed_headers:
+  - Authorization
+  - Content-Type
+  - Accept
+cors_allow_credentials: false
