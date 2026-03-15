@@ -4,9 +4,9 @@ services:
     container_name: go-api-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: hostel
-      POSTGRES_USER: hostel
-      POSTGRES_PASSWORD: hostel
+      POSTGRES_DB: appdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
