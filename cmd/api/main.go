@@ -11,9 +11,12 @@ import (
 	"thomas-backend/internal/config"
 	"thomas-backend/internal/database"
 	httprouter "thomas-backend/internal/http/router"
+	"thomas-backend/pkg/jwtutil"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
+	authDomain "thomas-backend/internal/domain/auth"
 )
 
 func main() {
@@ -47,9 +50,14 @@ func main() {
 		_ = sqlDB.Close()
 	}()
 
-	//validate := validator.New()
+	validate := validator.New()
+	tokenManager := jwtutil.NewManager(cfg.JWT.Secret, cfg.JWT.AccessTokenTTL)
 
-	router := httprouter.New(cfg, logger)
+	authRepo := authDomain.NewRepository(db)
+	authService := authDomain.NewService(authRepo, validate, tokenManager, logger)
+	authHandler := authDomain.NewHandler(authService, logger)
+
+	router := httprouter.New(cfg, logger, authHandler)
 
 	srv := &http.Server{
 		Addr:              cfg.Server.Address,

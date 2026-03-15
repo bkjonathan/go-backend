@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 	"thomas-backend/internal/config"
+	authDomain "thomas-backend/internal/domain/auth"
 	"thomas-backend/internal/middleware"
 	"thomas-backend/internal/response"
 
@@ -13,6 +14,7 @@ import (
 func New(
 	cfg *config.Config,
 	logger *zap.Logger,
+	authHandler *authDomain.Handler,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -25,5 +27,11 @@ func New(
 		response.WriteSuccess(w, http.StatusOK, map[string]string{"status": "ok"}, "service healthy")
 	})
 
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Route("/auth", func(r chi.Router) {
+			r.Post("/register", authHandler.Register)
+			r.Post("/login", authHandler.Login)
+		})
+	})
 	return r
 }

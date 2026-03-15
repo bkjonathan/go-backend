@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"fmt"
+	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
 )
@@ -34,10 +35,10 @@ type DatabaseConfig struct {
 }
 
 type JWTConfig struct {
-	Secret             string `yaml:"jwt_secret" env:"JWT_SECRET"`
-	AccessTokenTTL     string `yaml:"jwt_access_token_ttl" env:"JWT_ACCESS_TOKEN_TTL" env-default:"24h"`
-	RefreshTokenTTL    string `yaml:"jwt_refresh_token_ttl" env:"JWT_REFRESH_TOKEN_TTL" env-default:"7d"`
-	RefreshTokenSecret string `yaml:"jwt_refresh_token_secret" env:"JWT_REFRESH_TOKEN_SECRET"`
+	Secret             string        `yaml:"jwt_secret" env:"JWT_SECRET"`
+	AccessTokenTTL     time.Duration `yaml:"jwt_access_token_ttl" env:"JWT_ACCESS_TOKEN_TTL" env-default:"24h"`
+	RefreshTokenTTL    time.Duration `yaml:"jwt_refresh_token_ttl" env:"JWT_REFRESH_TOKEN_TTL" env-default:"7d"`
+	RefreshTokenSecret string        `yaml:"jwt_refresh_token_secret" env:"JWT_REFRESH_TOKEN_SECRET"`
 }
 
 type CORSConfig struct {
