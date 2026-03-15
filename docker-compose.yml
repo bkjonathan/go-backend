@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: go-api-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hostel
+      POSTGRES_USER: hostel
+      POSTGRES_PASSWORD: hostel
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - go-api-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hostel -d hostel"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+
+networks:
+  go-api-network:
+    driver: bridge

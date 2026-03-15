@@ -12,11 +12,11 @@ const DefaultConfigPath = "config/local.yaml"
 var configPathFlag = flag.String("config", "", "path to YAML config file")
 
 type Config struct {
-	App      AppConfig
-	Server   ServerConfig
-	Database DatabaseConfig
-	JWT      JWTConfig
-	CORS     CORSConfig
+	App      AppConfig      `yaml:",inline"`
+	Server   ServerConfig   `yaml:",inline"`
+	Database DatabaseConfig `yaml:",inline"`
+	JWT      JWTConfig      `yaml:",inline"`
+	CORS     CORSConfig     `yaml:",inline"`
 }
 
 type AppConfig struct {
@@ -47,7 +47,7 @@ type CORSConfig struct {
 	AllowCredentials bool     `yaml:"cors_allow_credentials" env:"CORS_ALLOW_CREDENTIALS" env-default:"false"`
 }
 
-func Load(configPath string) (Config, error) {
+func Load(configPath string) (*Config, error) {
 	var cfg Config
 
 	yamlPath := configPath
@@ -56,17 +56,18 @@ func Load(configPath string) (Config, error) {
 	}
 
 	if err := cleanenv.ReadConfig(yamlPath, &cfg); err != nil {
-		return cfg, fmt.Errorf("read %s: %w", yamlPath, err)
+		return nil, fmt.Errorf("read %s: %w", yamlPath, err)
 	}
 
 	if err := cleanenv.ReadEnv(&cfg); err != nil {
-		return cfg, fmt.Errorf("read env overrides: %w", err)
+		return nil, fmt.Errorf("read env overrides: %w", err)
 	}
+
 	cfg.Server.Address = fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
-	return cfg, nil
+	return &cfg, nil
 }
 
-func LoadFromFlags() (Config, error) {
+func LoadFromFlags() (*Config, error) {
 	flag.Parse()
 	return Load(*configPathFlag)
 }

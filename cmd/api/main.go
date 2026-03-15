@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 	"thomas-backend/internal/config"
+	"thomas-backend/internal/database"
 	httprouter "thomas-backend/internal/http/router"
 	"time"
 
@@ -33,9 +34,22 @@ func main() {
 		_ = logger.Sync()
 	}()
 
+	db, err := database.NewPostgresDB(ctx, cfg)
+	if err != nil {
+		logger.Fatal("connecting database", zap.Error(err))
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		logger.Fatal("getting sql db from gorm", zap.Error(err))
+	}
+	defer func() {
+		_ = sqlDB.Close()
+	}()
+
 	//validate := validator.New()
 
-	router := httprouter.New(&cfg, logger)
+	router := httprouter.New(cfg, logger)
 
 	srv := &http.Server{
 		Addr:              cfg.Server.Address,
