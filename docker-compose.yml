@@ -14,7 +14,7 @@ services:
     networks:
       - go-api-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hostel -d hostel"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d appdb"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,14 +25,23 @@ services:
       dockerfile: Dockerfile
     container_name: go-api
     restart: unless-stopped
+    environment:
+      APP_ENV: docker
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/appdb
+      JWT_SECRET: change-me-super-secret
+      JWT_REFRESH_TOKEN_SECRET: change-me-super-secret
+      SERVER_PORT: 8082
     ports:
-      - "8080:8080"
+      - "8082:8082"
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - go-api-network
 
 volumes:
   postgres-data:
+    name: go-api-postgres-data-v2
 
 networks:
   go-api-network:

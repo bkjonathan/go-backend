@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
@@ -37,7 +38,7 @@ type DatabaseConfig struct {
 type JWTConfig struct {
 	Secret             string        `yaml:"jwt_secret" env:"JWT_SECRET"`
 	AccessTokenTTL     time.Duration `yaml:"jwt_access_token_ttl" env:"JWT_ACCESS_TOKEN_TTL" env-default:"24h"`
-	RefreshTokenTTL    time.Duration `yaml:"jwt_refresh_token_ttl" env:"JWT_REFRESH_TOKEN_TTL" env-default:"7d"`
+	RefreshTokenTTL    time.Duration `yaml:"jwt_refresh_token_ttl" env:"JWT_REFRESH_TOKEN_TTL" env-default:"168h"`
 	RefreshTokenSecret string        `yaml:"jwt_refresh_token_secret" env:"JWT_REFRESH_TOKEN_SECRET"`
 }
 
@@ -57,7 +58,11 @@ func Load(configPath string) (*Config, error) {
 	}
 
 	if err := cleanenv.ReadConfig(yamlPath, &cfg); err != nil {
-		return nil, fmt.Errorf("read %s: %w", yamlPath, err)
+		if !(configPath == "" && os.IsNotExist(err)) {
+			return nil, fmt.Errorf("read %s: %w", yamlPath, err)
+		}
+	} else {
+		cfg.Server.Address = fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	}
 
 	if err := cleanenv.ReadEnv(&cfg); err != nil {

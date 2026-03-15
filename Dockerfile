@@ -12,7 +12,8 @@ FROM gcr.io/distroless/static-debian12:nonroot
 
 WORKDIR /app
 COPY --from=builder /out/api /app/api
+COPY --from=builder /app/config /app/config
 
-EXPOSE 8080
+EXPOSE 8082
 
 ENTRYPOINT ["/app/api"]
