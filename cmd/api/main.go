@@ -11,12 +11,15 @@ import (
 	"thomas-backend/internal/config"
 	"thomas-backend/internal/database"
 	httprouter "thomas-backend/internal/http/router"
+	"thomas-backend/internal/middleware"
 	"thomas-backend/pkg/jwtutil"
 	"time"
 
+	authDomain "thomas-backend/internal/domain/auth"
+	userDomain "thomas-backend/internal/domain/user"
+
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
-	authDomain "thomas-backend/internal/domain/auth"
 )
 
 func main() {
@@ -57,7 +60,13 @@ func main() {
 	authService := authDomain.NewService(authRepo, validate, tokenManager, logger)
 	authHandler := authDomain.NewHandler(authService, logger)
 
-	router := httprouter.New(cfg, logger, authHandler)
+	userRepo := userDomain.NewRepository(db)
+	userService := userDomain.NewService(userRepo, validate, logger)
+	userHandler := userDomain.NewHandler(userService, logger)
+
+	authMiddleware := middleware.NewAuthMiddleware(tokenManager, logger)
+
+	router := httprouter.New(cfg, logger, authHandler, userHandler, authMiddleware)
 
 	srv := &http.Server{
 		Addr:              cfg.Server.Address,

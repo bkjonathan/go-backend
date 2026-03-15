@@ -31,23 +31,23 @@ func (m *Manager) Generate(userID int64, email string) (string, error) {
 		UserID: userID,
 		Email:  email,
 		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    "go-backend",
 			Subject:   fmt.Sprintf("%d", userID),
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(m.ttl)),
 			NotBefore: jwt.NewNumericDate(now),
-			Issuer:    "go-api",
 		},
 	}
-	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signed, err := jwtToken.SignedString(m.secret)
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signed, err := token.SignedString(m.secret)
 	if err != nil {
-		return "", fmt.Errorf("signing jwt: %w", err)
+		return "", fmt.Errorf("signing jwt token: %w", err)
 	}
 	return signed, nil
-
 }
 
-func (m *Manager) Validate(token string) (*Claims, error) {
+func (m *Manager) Verify(token string) (*Claims, error) {
 	parsed, err := jwt.ParseWithClaims(token, &Claims{}, func(t *jwt.Token) (interface{}, error) {
 		if t.Method != jwt.SigningMethodHS256 {
 			return nil, fmt.Errorf("unexpected signing method: %s", t.Method.Alg())
@@ -57,10 +57,12 @@ func (m *Manager) Validate(token string) (*Claims, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parsing jwt token: %w", err)
 	}
+
 	claims, ok := parsed.Claims.(*Claims)
 	if !ok || !parsed.Valid {
 		return nil, fmt.Errorf("invalid jwt claims")
 	}
+
 	return claims, nil
 }
 
