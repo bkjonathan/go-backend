@@ -8,17 +8,12 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"thomas-backend/internal/app"
 	"thomas-backend/internal/config"
 	"thomas-backend/internal/database"
 	httprouter "thomas-backend/internal/http/router"
-	"thomas-backend/internal/middleware"
-	"thomas-backend/pkg/jwtutil"
 	"time"
 
-	authDomain "thomas-backend/internal/domain/auth"
-	userDomain "thomas-backend/internal/domain/user"
-
-	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 )
 
@@ -53,20 +48,10 @@ func main() {
 		_ = sqlDB.Close()
 	}()
 
-	validate := validator.New()
-	tokenManager := jwtutil.NewManager(cfg.JWT.Secret, cfg.JWT.AccessTokenTTL)
+	// Build the entire dependency graph via the App container.
+	application := app.New(cfg, logger, db)
 
-	authRepo := authDomain.NewRepository(db)
-	authService := authDomain.NewService(authRepo, validate, tokenManager, logger)
-	authHandler := authDomain.NewHandler(authService, logger)
-
-	userRepo := userDomain.NewRepository(db)
-	userService := userDomain.NewService(userRepo, validate, logger)
-	userHandler := userDomain.NewHandler(userService, logger)
-
-	authMiddleware := middleware.NewAuthMiddleware(tokenManager, logger)
-
-	router := httprouter.New(cfg, logger, authHandler, userHandler, authMiddleware)
+	router := httprouter.New(application)
 
 	srv := &http.Server{
 		Addr:              cfg.Server.Address,

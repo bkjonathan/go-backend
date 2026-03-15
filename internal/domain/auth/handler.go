@@ -1,10 +1,10 @@
 package auth
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"thomas-backend/internal/apperror"
+	"thomas-backend/internal/common/httputil"
 	"thomas-backend/internal/response"
 
 	"go.uber.org/zap"
@@ -24,11 +24,9 @@ func NewHandler(service Service, logger *zap.Logger) *Handler {
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
-	if err := decodeJSON(r, &req); err != nil {
-		response.WriteFromError(w, apperror.New(
-			apperror.CodeInvalidInput,
+	if err := httputil.DecodeJSON(r, &req); err != nil {
+		response.WriteFromError(w, apperror.InvalidInput(
 			"invalid request payload",
-			http.StatusBadRequest,
 			fmt.Errorf("decoding register request: %w", err),
 		))
 		return
@@ -46,11 +44,9 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
-	if err := decodeJSON(r, &req); err != nil {
-		response.WriteFromError(w, apperror.New(
-			apperror.CodeInvalidInput,
+	if err := httputil.DecodeJSON(r, &req); err != nil {
+		response.WriteFromError(w, apperror.InvalidInput(
 			"invalid request payload",
-			http.StatusBadRequest,
 			fmt.Errorf("decoding login request: %w", err),
 		))
 		return
@@ -63,12 +59,4 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.WriteSuccess(w, http.StatusOK, result, "login successful")
-}
-func decodeJSON(r *http.Request, dst interface{}) error {
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(dst); err != nil {
-		return fmt.Errorf("decoding json payload: %w", err)
-	}
-	return nil
 }

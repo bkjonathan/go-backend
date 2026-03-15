@@ -23,13 +23,10 @@ func Recovery(logger *zap.Logger) func(http.Handler) http.Handler {
 						zap.String("request_id", GetRequestID(r.Context())),
 					)
 
-					err := apperror.New(
-						apperror.CodeInternal,
+					response.WriteFromError(w, apperror.Internal(
 						"internal server error",
-						http.StatusInternalServerError,
 						fmt.Errorf("panic: %v", recovered),
-					)
-					response.WriteFromError(w, err)
+					))
 				}
 			}()
 
